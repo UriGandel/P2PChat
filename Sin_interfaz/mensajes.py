@@ -1,15 +1,28 @@
 import socket
 import json
+from time import sleep
+from plyer import notification
 
 PORT = 12345
 
 def recibir_mensajes(sock):
     while True:
-        data, addr = sock.recvfrom(1024)
-        data = json.loads(data.decode())
-        nombre = data["name"]
-        mensaje = data["msg"]
-        print(f"\n{nombre}: {mensaje}")
+        try:
+            data, addr = sock.recvfrom(1024)
+            data = json.loads(data.decode())
+            nombre = data["name"]
+            mensaje = data["msg"]
+            notification.notify(
+                title="Nuevo mensaje",
+                message=f"Mensaje de {addr[0]}: {data.decode()}",
+                app_name="Chat Grupal",
+                timeout=5
+            )
+            # Simular ocultar la ventana
+            sleep(1)
+            print(f"\n{nombre}: {mensaje}")
+        except Exception as e:
+            print(f"Error recibiendo mensaje: {e}")
 
 def enviar_mensajes(nombre, sock, destinos):
     while True:
