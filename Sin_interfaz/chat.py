@@ -1,52 +1,7 @@
 import threading
-import time
-from plyer import notification
-import os
-import platform
-
 import socket
 from mensajes import obtener_ip_local, PORT, enviar_mensajes, recibir_mensajes
 from config import cargar_config
-
-PORT = 12345
-
-def recibir_mensajes(sock):
-    while True:
-        try:
-            data, addr = sock.recvfrom(1024)
-            mensaje = f"\n{addr[0]}: {data.decode()}"
-            print(mensaje)  # Mostrar el mensaje en la consola
-            # Mostrar notificación
-            notification.notify(
-                title="Nuevo mensaje",
-                message=f"Mensaje de {addr[0]}: {data.decode()}",
-                app_name="Chat Grupal",
-                timeout=5
-            )
-            # Simular ocultar la ventana
-            time.sleep(1)  # Pausa para evitar sobrecargar el sistema
-        except Exception as e:
-            print(f"Error recibiendo mensaje: {e}")
-            break
-
-def enviar_mensajes(sock, destinos, mensaje):
-    for dest_ip, dest_port in destinos:
-        try:
-            sock.sendto(mensaje.encode(), (dest_ip, dest_port))
-        except Exception as e:
-            print(f"Error enviando mensaje a {dest_ip}: {e}")
-
-def obtener_ip_local():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.settimeout(0)
-    try:
-        s.connect(('8.8.8.8', 80))  # Usar una IP pública para determinar la IP local
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
-    finally:
-        s.close()
-    return ip
 
 
 def main():
