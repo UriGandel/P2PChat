@@ -3,6 +3,7 @@ import socket
 from mensajes import obtener_ip_local, PORT, enviar_mensajes, recibir_mensajes
 from config import cargar_config
 
+config = cargar_config()
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -32,7 +33,7 @@ def main():
         if mensaje.lower() == 'exit':
             break
         if mensaje:
-            enviar_mensajes(sock, destinos, mensaje)
+            enviar_mensajes(config["name"], mensaje, sock, destinos)
 
 if __name__ == "__main__":
     main()

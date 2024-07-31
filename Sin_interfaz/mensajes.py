@@ -24,12 +24,10 @@ def recibir_mensajes(sock):
         except Exception as e:
             print(f"Error recibiendo mensaje: {e}")
 
-def enviar_mensajes(nombre, sock, destinos):
-    while True:
-        mensaje = input(f"{nombre}: ")
-        mensaje_json = json.dumps({"msg": mensaje, "name": nombre})
-        for dest_ip, dest_port in destinos:
-            sock.sendto(mensaje_json.encode(), (dest_ip, dest_port))
+def enviar_mensajes(nombre, mensaje, sock, destinos):
+    mensaje_json = json.dumps({"msg": mensaje, "name": nombre})
+    for dest_ip, dest_port in destinos:
+        sock.sendto(mensaje_json.encode(), (dest_ip, dest_port))
 
 def obtener_ip_local():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
