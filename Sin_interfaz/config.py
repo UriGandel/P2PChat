@@ -5,7 +5,7 @@ config = {
 }
 
 def cargar_config(file="chat") -> dict:
-    '''Carga la config, si no la encuentra utiliza la ip como nombre'''
+    '''Carga la configuración, si no la encuentra utiliza la ip como nombre'''
     try:
         config_file = open(f"{file}.toml", "r")
     except FileNotFoundError:

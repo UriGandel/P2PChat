@@ -1,6 +1,6 @@
 import threading
 import socket
-from Sin_interfaz.mensajes import obtener_ip_local, PORT, enviar_mensajes, recibir_mensajes
+from mensajes import obtener_ip_local, PORT, enviar_mensajes, recibir_mensajes
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(('0.0.0.0', PORT))  
