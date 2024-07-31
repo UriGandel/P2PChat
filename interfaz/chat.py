@@ -2,10 +2,11 @@ import socket
 import threading
 import tkinter as tk
 from tkinter import scrolledtext, simpledialog, messagebox
+from plyer import notification  # Para notificaciones del sistema
 
-PORT = 12345        
+PORT = 12345
 
-def recibir_mensajes(sock, chat_box):
+def recibir_mensajes(sock, chat_box, root):
     while True:
         try:
             data, addr = sock.recvfrom(1024)
@@ -13,8 +14,17 @@ def recibir_mensajes(sock, chat_box):
             chat_box.config(state=tk.NORMAL)
             chat_box.insert(tk.END, mensaje)
             chat_box.config(state=tk.DISABLED)
+            # Mostrar notificación
+            notification.notify(
+                title="Nuevo mensaje",
+                message=f"Mensaje de {addr[0]}: {data.decode()}",
+                app_name="Chat Grupal",
+                timeout=5
+            )
+            # Reaparecer la ventana al recibir mensaje
+            root.after(100, root.deiconify)
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error recibiendo mensaje: {e}")
             break
 
 def enviar_mensajes(sock, destinos, mensaje):
@@ -22,14 +32,14 @@ def enviar_mensajes(sock, destinos, mensaje):
         try:
             sock.sendto(mensaje.encode(), (dest_ip, dest_port))
         except Exception as e:
-            print(f"No se puedo mandar el mensaje a: {dest_ip}: {e}")
+            print(f"Error enviando mensaje a {dest_ip}: {e}")
 
 def obtener_ip_local():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(0)
     try:
-        s.connect(('8.8.8.8', 80)) 
-        ip = s.getsockname()[0].split(':')[0]
+        s.connect(('8.8.8.8', 80))  # Usar una IP pública para determinar la IP local
+        ip = s.getsockname()[0]
     except Exception:
         ip = '127.0.0.1'
     finally:
@@ -45,8 +55,11 @@ def enviar(event=None):
         chat_box.config(state=tk.DISABLED)
         mensaje_entry.delete(0, tk.END)
 
+def ocultar_ventana():
+    root.withdraw()  # Ocultar la ventana
+
 def iniciar_chat():
-    hilo_recibir = threading.Thread(target=recibir_mensajes, args=(sock, chat_box))
+    hilo_recibir = threading.Thread(target=recibir_mensajes, args=(sock, chat_box, root))
     hilo_recibir.daemon = True
     hilo_recibir.start()
 
@@ -55,11 +68,13 @@ sock.bind(('0.0.0.0', PORT))
 
 ip_local = obtener_ip_local()
 
+# Configuración de la interfaz gráfica
 root = tk.Tk()
-root.title("Chat P2P")
-root.geometry("400x485")
+root.title("Chat Grupal")
+root.geometry("400x400")
 
-ip_label = tk.Label(root, text=f"Tu IP: {ip_local}")
+# Mostrar la IP local
+ip_label = tk.Label(root, text=f"Tu IP: {ip_local}:{PORT}")
 ip_label.pack(padx=10, pady=5)
 
 chat_box = scrolledtext.ScrolledText(root, state=tk.DISABLED, wrap=tk.WORD)
@@ -69,25 +84,26 @@ mensaje_frame = tk.Frame(root)
 mensaje_frame.pack(padx=10, pady=10, fill=tk.X)
 
 mensaje_entry = tk.Entry(mensaje_frame)
-mensaje_entry.pack(fill=tk.X)
 mensaje_entry.grid(row=0, column=0, sticky="ew")
 mensaje_entry.bind("<Return>", enviar)
 
 enviar_button = tk.Button(mensaje_frame, text="Enviar", command=enviar)
 enviar_button.grid(row=0, column=1)
-root.attributes('-topmost', True)
+
+ocultar_button = tk.Button(root, text="Ocultar ventana", command=ocultar_ventana)
+ocultar_button.pack(padx=10, pady=5, side=tk.BOTTOM)
 
 mensaje_frame.columnconfigure(0, weight=1)
 
 destinos = []
 while True:
-    dest_ip = simpledialog.askstring("Dirección IP", "Introduce la dirección IP de tu destinatario (o 'fin' para terminar):")
+    dest_ip = simpledialog.askstring("Dirección IP", "Introduce la dirección IP del compañero (o 'fin' para terminar):")
     if not dest_ip or dest_ip.lower() == 'fin':
         break
     destinos.append((dest_ip, PORT))
 
 if not destinos:
-    messagebox.showinfo("Información", "Error: No se introdujo ninguna IP.")
+    messagebox.showinfo("Información", "No se ingresaron destinos. El programa terminará.")
     root.destroy()
 else:
     iniciar_chat()
