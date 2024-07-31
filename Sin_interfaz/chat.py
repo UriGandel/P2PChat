@@ -1,11 +1,12 @@
 import threading
 import time
-from plyer import notification
+#from plyer import notification
 import os
 import platform
 
 import socket
 from mensajes import obtener_ip_local, PORT, enviar_mensajes, recibir_mensajes
+from config import cargar_config
 
 PORT = 12345
 
@@ -16,12 +17,12 @@ def recibir_mensajes(sock):
             mensaje = f"\n{addr[0]}: {data.decode()}"
             print(mensaje)  # Mostrar el mensaje en la consola
             # Mostrar notificación
-            notification.notify(
-                title="Nuevo mensaje",
-                message=f"Mensaje de {addr[0]}: {data.decode()}",
-                app_name="Chat Grupal",
-                timeout=5
-            )
+            #notification.notify(
+            #    title="Nuevo mensaje",
+            #    message=f"Mensaje de {addr[0]}: {data.decode()}",
+            #    app_name="Chat Grupal",
+            #    timeout=5
+            #)
             # Simular ocultar la ventana
             if platform.system() == "Windows":
                 os.system("powershell -command \"& { $wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('% {TAB}'); }\"")
