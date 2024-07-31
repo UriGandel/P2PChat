@@ -70,8 +70,9 @@ ip_local = obtener_ip_local()
 
 # Configuración de la interfaz gráfica
 root = tk.Tk()
+root.attributes('-topmost', True)
 root.title("Chat Grupal")
-root.geometry("400x400")
+root.geometry("400x520")
 
 # Mostrar la IP local
 ip_label = tk.Label(root, text=f"Tu IP: {ip_local}:{PORT}")

@@ -3,10 +3,9 @@ import time
 from plyer import notification
 import os
 import platform
-<<<<<<< HEAD
+
 import socket
 from mensajes import obtener_ip_local, PORT, enviar_mensajes, recibir_mensajes
-=======
 
 PORT = 12345
 
@@ -49,7 +48,7 @@ def obtener_ip_local():
     finally:
         s.close()
     return ip
->>>>>>> f5d52aeca9546b9d6c16caecf3a48486bf3fe353
+
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
