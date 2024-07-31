@@ -14,7 +14,7 @@ def recibir_mensajes(sock):
             mensaje = data["msg"]
             notification.notify(
                 title="Nuevo mensaje",
-                message=f"Mensaje de {addr[0]}: {data.decode()}",
+                message=f"Mensaje de {nombre}: {mensaje}",
                 app_name="Chat Grupal",
                 timeout=5
             )
