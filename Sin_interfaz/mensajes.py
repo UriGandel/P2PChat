@@ -1,17 +1,22 @@
 import socket
+import json
 
-PORT = 12345        
+PORT = 12345
 
 def recibir_mensajes(sock):
     while True:
         data, addr = sock.recvfrom(1024)
-        print(f"\nMensaje recibido de {addr}: {data.decode()}")
+        data = json.loads(data.decode())
+        nombre = data["name"]
+        mensaje = data["msg"]
+        print(f"\n{nombre}: {mensaje}")
 
-def enviar_mensajes(sock, destinos):
+def enviar_mensajes(nombre, sock, destinos):
     while True:
-        mensaje = input()
+        mensaje = input(f"{nombre}: ")
+        mensaje_json = json.dumps({"msg": mensaje, "name": nombre})
         for dest_ip, dest_port in destinos:
-            sock.sendto(mensaje.encode(), (dest_ip, dest_port))
+            sock.sendto(mensaje_json.encode(), (dest_ip, dest_port))
 
 def obtener_ip_local():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

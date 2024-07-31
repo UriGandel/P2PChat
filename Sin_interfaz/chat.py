@@ -1,29 +1,36 @@
 import threading
 import socket
 from mensajes import obtener_ip_local, PORT, enviar_mensajes, recibir_mensajes
+from config import cargar_config
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(('0.0.0.0', PORT))  
+config = cargar_config()
 
-ip_local = obtener_ip_local()
+def main():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(('0.0.0.0', PORT))  
 
-print(f"Tu IP y puerto: {ip_local}")
+    ip_local = obtener_ip_local()
 
-destinos = []
-while True:
-    dest_ip = input("Introduce la dirección IP del compañero (o 'fin' para terminar): ")
-    if dest_ip.lower() == 'fin':
-        break
-    destinos.append((dest_ip, PORT))
+    print(f"Tu IP y puerto: {ip_local}")
 
-if not destinos:
-    print("No se ingresaron destinos. El programa terminará.")
-else:
-    hilo_recibir = threading.Thread(target=recibir_mensajes, args=(sock,))
-    hilo_enviar = threading.Thread(target=enviar_mensajes, args=(sock, destinos))
+    destinos = []
+    while True:
+        dest_ip = input("Introduce la dirección IP del compañero (o 'fin' para terminar): ")
+        if dest_ip.lower() == 'fin':
+            break
+        destinos.append((dest_ip, PORT))
 
-    hilo_recibir.start()
-    hilo_enviar.start()
+    if not destinos:
+        print("No se ingresaron destinos. El programa terminará.")
+    else:
+        hilo_recibir = threading.Thread(target=recibir_mensajes, args=(sock,))
+        hilo_enviar = threading.Thread(target=enviar_mensajes, args=(config["name"], sock, destinos))
 
-    hilo_recibir.join()
-    hilo_enviar.join()
+        hilo_recibir.start()
+        hilo_enviar.start()
+
+        hilo_recibir.join()
+        hilo_enviar.join()
+
+if __name__ == "__main__":
+    main()
