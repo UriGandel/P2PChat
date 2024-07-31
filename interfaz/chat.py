@@ -14,7 +14,7 @@ def recibir_mensajes(sock, chat_box):
             chat_box.insert(tk.END, mensaje)
             chat_box.config(state=tk.DISABLED)
         except Exception as e:
-            print(f"Error recibiendo mensaje: {e}")
+            print(f"Error: {e}")
             break
 
 def enviar_mensajes(sock, destinos, mensaje):
@@ -22,14 +22,14 @@ def enviar_mensajes(sock, destinos, mensaje):
         try:
             sock.sendto(mensaje.encode(), (dest_ip, dest_port))
         except Exception as e:
-            print(f"Error enviando mensaje a {dest_ip}: {e}")
+            print(f"No se puedo mandar el mensaje a: {dest_ip}: {e}")
 
 def obtener_ip_local():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(0)
     try:
-        s.connect(('8.8.8.8', 80))  # Usar una IP pública para determinar la IP local
-        ip = s.getsockname()[0]
+        s.connect(('8.8.8.8', 80)) 
+        ip = s.getsockname()[0].split(':')[0]
     except Exception:
         ip = '127.0.0.1'
     finally:
@@ -55,13 +55,11 @@ sock.bind(('0.0.0.0', PORT))
 
 ip_local = obtener_ip_local()
 
-# Configuración de la interfaz gráfica
 root = tk.Tk()
-root.title("Chat Grupal")
+root.title("Chat P2P")
 root.geometry("400x485")
 
-# Mostrar la IP local
-ip_label = tk.Label(root, text=f"Tu IP: {ip_local}:{PORT}")
+ip_label = tk.Label(root, text=f"Tu IP: {ip_local}")
 ip_label.pack(padx=10, pady=5)
 
 chat_box = scrolledtext.ScrolledText(root, state=tk.DISABLED, wrap=tk.WORD)
@@ -83,13 +81,13 @@ mensaje_frame.columnconfigure(0, weight=1)
 
 destinos = []
 while True:
-    dest_ip = simpledialog.askstring("Dirección IP", "Introduce la dirección IP del compañero (o 'fin' para terminar):")
+    dest_ip = simpledialog.askstring("Dirección IP", "Introduce la dirección IP de tu destinatario (o 'fin' para terminar):")
     if not dest_ip or dest_ip.lower() == 'fin':
         break
     destinos.append((dest_ip, PORT))
 
 if not destinos:
-    messagebox.showinfo("Información", "No se ingresaron destinos. El programa terminará.")
+    messagebox.showinfo("Información", "Error: No se introdujo ninguna IP.")
     root.destroy()
 else:
     iniciar_chat()
