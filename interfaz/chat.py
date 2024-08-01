@@ -2,35 +2,39 @@ import socket
 import threading
 import tkinter as tk
 from tkinter import scrolledtext, simpledialog, messagebox
-from plyer import notification  # Para notificaciones del sistema
-
+from plyer import notification
 PORT = 12345
 
 def recibir_mensajes(sock, chat_box, root):
     while True:
         try:
             data, addr = sock.recvfrom(1024)
-            mensaje = f"\n{addr[0]}: {data.decode()}"
-            chat_box.config(state=tk.NORMAL)
-            chat_box.insert(tk.END, mensaje)
-            chat_box.config(state=tk.DISABLED)
-            # Mostrar notificación
-            notification.notify(
-                title="Nuevo mensaje",
-                message=f"Mensaje de {addr[0]}: {data.decode()}",
-                app_name="Chat Grupal",
-                timeout=5
-            )
-            # Reaparecer la ventana al recibir mensaje
-            root.after(100, root.deiconify)
+            data = data.decode().split(":", 1)
+            nombre = data[0]
+            mensaje = data[1]
+            mensaje_formateado = f"\n{nombre}: {mensaje}"
+            root.after(0, actualizar_chat_box, chat_box, mensaje_formateado, root, addr)
         except Exception as e:
             print(f"Error recibiendo mensaje: {e}")
             break
 
-def enviar_mensajes(sock, destinos, mensaje):
+def actualizar_chat_box(chat_box, mensaje, root, addr):
+    chat_box.config(state=tk.NORMAL)
+    chat_box.insert(tk.END, mensaje)
+    chat_box.config(state=tk.DISABLED)
+    notification.notify(
+        title="Nuevo mensaje",
+        message=f"Mensaje de {mensaje.split(':', 1)[0]}",
+        app_name="Chat Grupal",
+        timeout=5
+    )
+    root.deiconify()
+
+def enviar_mensajes(sock, destinos, nombre, mensaje):
+    mensaje_formateado = f"{nombre}:{mensaje}"
     for dest_ip, dest_port in destinos:
         try:
-            sock.sendto(mensaje.encode(), (dest_ip, dest_port))
+            sock.sendto(mensaje_formateado.encode(), (dest_ip, dest_port))
         except Exception as e:
             print(f"Error enviando mensaje a {dest_ip}: {e}")
 
@@ -38,7 +42,7 @@ def obtener_ip_local():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(0)
     try:
-        s.connect(('8.8.8.8', 80))  # Usar una IP pública para determinar la IP local
+        s.connect(('8.8.8.8', 80))
         ip = s.getsockname()[0]
     except Exception:
         ip = '127.0.0.1'
@@ -49,14 +53,14 @@ def obtener_ip_local():
 def enviar(event=None):
     mensaje = mensaje_entry.get()
     if mensaje:
-        enviar_mensajes(sock, destinos, mensaje)
+        enviar_mensajes(sock, destinos, nombre_usuario, mensaje)
         chat_box.config(state=tk.NORMAL)
         chat_box.insert(tk.END, f"\nTú: {mensaje}")
         chat_box.config(state=tk.DISABLED)
         mensaje_entry.delete(0, tk.END)
 
 def ocultar_ventana():
-    root.withdraw()  # Ocultar la ventana
+    root.withdraw()
 
 def iniciar_chat():
     hilo_recibir = threading.Thread(target=recibir_mensajes, args=(sock, chat_box, root))
@@ -64,7 +68,7 @@ def iniciar_chat():
     hilo_recibir.start()
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(('0.0.0.0', PORT))  
+sock.bind(('0.0.0.0', PORT))
 
 ip_local = obtener_ip_local()
 
@@ -73,6 +77,8 @@ root = tk.Tk()
 root.attributes('-topmost', True)
 root.title("Chat Grupal")
 root.geometry("400x520")
+
+
 
 # Mostrar la IP local
 ip_label = tk.Label(root, text=f"Tu IP: {ip_local}:{PORT}")
@@ -107,5 +113,9 @@ if not destinos:
     messagebox.showinfo("Información", "No se ingresaron destinos. El programa terminará.")
     root.destroy()
 else:
+    nombre_usuario = simpledialog.askstring("Nombre", "Introduce tu nombre:")
+    if not nombre_usuario:
+        messagebox.showinfo("Información", "No se ingresó nombre.Continuando como invitado.")
+        nombre_usuario = f"Invitado({dest_ip})"
     iniciar_chat()
     root.mainloop()
