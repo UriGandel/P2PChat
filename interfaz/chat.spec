@@ -5,7 +5,7 @@ a = Analysis(
     ['chat.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('contactos.txt', '.')],
     hiddenimports=['plyer.platforms.win.notification', 'plyer.platforms.linux.notification'],
     hookspath=[],
     hooksconfig={},

@@ -272,6 +272,7 @@
   ('tkinter.simpledialog',
    'C:\\Python310\\lib\\tkinter\\simpledialog.py',
    'PYMODULE'),
+  ('tkinter.ttk', 'C:\\Python310\\lib\\tkinter\\ttk.py', 'PYMODULE'),
   ('token', 'C:\\Python310\\lib\\token.py', 'PYMODULE'),
   ('tokenize', 'C:\\Python310\\lib\\tokenize.py', 'PYMODULE'),
   ('tracemalloc', 'C:\\Python310\\lib\\tracemalloc.py', 'PYMODULE'),
