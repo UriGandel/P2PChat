@@ -6,9 +6,11 @@ from tkinter import ttk
 from plyer import notification
 import os
 import sys
-
+import json
 PORT = 12345
 
+
+stop_event = threading.Event()
 def recibir_mensajes(sock, chat_box, root):
     while True:
         try:
@@ -18,8 +20,11 @@ def recibir_mensajes(sock, chat_box, root):
             mensaje = data[1]
             mensaje_formateado = f"\n{nombre}: {mensaje}"
             root.after(0, actualizar_chat_box, chat_box, mensaje_formateado, root, nombre)
-        except Exception as e:
-            print(f"Error recibiendo mensaje: {e}")
+        except (socket.error, json.JSONDecodeError) as e:
+            if not stop_event.is_set():
+                chat_box.config(state=tk.NORMAL)
+                chat_box.insert(tk.END, "\nError de conexión o desconexión del servidor.")
+                chat_box.config(state=tk.DISABLED)
             break
 
 def actualizar_chat_box(chat_box, mensaje, root, nombre):
@@ -67,6 +72,7 @@ def ocultar_ventana():
     root.withdraw()
 
 def iniciar_chat():
+    global hilo_recibir
     hilo_recibir = threading.Thread(target=recibir_mensajes, args=(sock, chat_box, root))
     hilo_recibir.daemon = True
     hilo_recibir.start()
@@ -150,7 +156,7 @@ def abrir_ventana_seleccion_contactos():
         messagebox.showinfo("Información", "No se seleccionaron destinos. Continuando con los contactos actuales.", parent=root)
         if not contactos:
             messagebox.showinfo("No se encontraron contactos. El programa terminará.", parent=root)
-            root.destroy()
+            root.exit()
     else:
         # Convertir contactos seleccionados en formato (IP, PORT)
         destinos = [(ip, PORT) for nombre, ip in destinos]
@@ -216,7 +222,11 @@ if not contactos:
             contactos.append(nuevo_contacto)
             messagebox.showinfo("Contacto agregado", f"Contacto {nuevo_contacto[0]} agregado con éxito.", parent=root)
     else:
+        messagebox.showinfo("Información", "No se encontraron o añadieron contactos. El programa terminará.", parent=root)
+        sock.close
+        stop_event.set()
         root.destroy()
+        sys.exit()
 
 if not contactos:
     messagebox.showinfo("Información", "No se encontraron o añadieron contactos. El programa terminará.", parent=root)
@@ -225,7 +235,10 @@ else:
     destinos = seleccionar_contactos(contactos, ip_local)
     if not destinos:
         messagebox.showinfo("Información", "No se seleccionaron destinos. El programa terminará.", parent=root)
+        sock.close()
+        stop_event.set()
         root.destroy()
+        sys.exit()
     else:
         # Convertir contactos seleccionados en formato (IP, PORT)
         destinos = [(ip, PORT) for nombre, ip in destinos]
